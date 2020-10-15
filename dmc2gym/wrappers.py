@@ -36,20 +36,18 @@ def _flatten_obs(obs):
 
 
 class DMCWrapper(core.Env):
-    def __init__(
-        self,
-        domain_name,
-        task_name,
-        task_kwargs=None,
-        visualize_reward={},
-        from_pixels=False,
-        height=84,
-        width=84,
-        camera_id=0,
-        frame_skip=1,
-        environment_kwargs=None,
-        channels_first=True
-    ):
+    def __init__(self,
+                 domain_name,
+                 task_name,
+                 task_kwargs=None,
+                 visualize_reward={},
+                 from_pixels=False,
+                 height=84,
+                 width=84,
+                 camera_id=0,
+                 frame_skip=1,
+                 environment_kwargs=None,
+                 channels_first=True):
         assert 'random' in task_kwargs, 'please specify a seed, for deterministic behaviour'
         self._from_pixels = from_pixels
         self._height = height
@@ -60,15 +58,13 @@ class DMCWrapper(core.Env):
 
         # create task
         if domain_name == 'jaco':
-            self._env = manipulation.load(task_name)
+            self._env, self._mod_tag = manipulation.load(task_name)
         else:
-            self._env = suite.load(
-                domain_name=domain_name,
-                task_name=task_name,
-                task_kwargs=task_kwargs,
-                visualize_reward=visualize_reward,
-                environment_kwargs=environment_kwargs
-            )
+            self._env = suite.load(domain_name=domain_name,
+                                   task_name=task_name,
+                                   task_kwargs=task_kwargs,
+                                   visualize_reward=visualize_reward,
+                                   environment_kwargs=environment_kwargs)
 
         # true and normalized action spaces
         self._true_action_space = _spec_to_box([self._env.action_spec()])
@@ -76,24 +72,22 @@ class DMCWrapper(core.Env):
             low=-1.0,
             high=1.0,
             shape=self._true_action_space.shape,
-            dtype=np.float32
-        )
+            dtype=np.float32)
 
         # create observation space
         if from_pixels:
-            shape = [3, height, width] if channels_first else [height, width, 3]
-            self._observation_space = spaces.Box(
-                low=0, high=255, shape=shape, dtype=np.uint8
-            )
+            shape = [3, height, width
+                     ] if channels_first else [height, width, 3]
+            self._observation_space = spaces.Box(low=0,
+                                                 high=255,
+                                                 shape=shape,
+                                                 dtype=np.uint8)
         else:
             self._observation_space = _spec_to_box(
-                self._env.observation_spec().values()
-            )
-            
-        self._state_space = _spec_to_box(
-                self._env.observation_spec().values()
-        )
-        
+                self._env.observation_spec().values())
+
+        self._state_space = _spec_to_box(self._env.observation_spec().values())
+
         self.current_state = None
 
         # set seed
@@ -104,11 +98,9 @@ class DMCWrapper(core.Env):
 
     def _get_obs(self, time_step):
         if self._from_pixels:
-            obs = self.render(
-                height=self._height,
-                width=self._width,
-                camera_id=self._camera_id
-            )
+            obs = self.render(height=self._height,
+                              width=self._width,
+                              camera_id=self._camera_id)
             if self._channels_first:
                 obs = obs.transpose(2, 0, 1).copy()
         else:
@@ -135,6 +127,10 @@ class DMCWrapper(core.Env):
     @property
     def action_space(self):
         return self._norm_action_space
+
+    @property
+    def get_mod_tag(self):
+        return self._mod_tag
 
     def seed(self, seed):
         self._true_action_space.seed(seed)
@@ -170,6 +166,6 @@ class DMCWrapper(core.Env):
         height = height or self._height
         width = width or self._width
         camera_id = camera_id or self._camera_id
-        return self._env.physics.render(
-            height=height, width=width, camera_id=camera_id
-        )
+        return self._env.physics.render(height=height,
+                                        width=width,
+                                        camera_id=camera_id)
