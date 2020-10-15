@@ -155,7 +155,7 @@ class DMCWrapper(core.Env):
         for _ in range(self._frame_skip):
             time_step = self._env.step(action)
             reward += time_step.reward or 0
-            done = time_step.last()
+            done = False #time_step.last()
             if done:
                 break
         obs = self._get_obs(time_step)
