@@ -60,7 +60,7 @@ class DMCWrapper(core.Env):
 
         # create task
         if domain_name == 'jaco':
-            self._env, self._mod_tag = manipulation.load(task_name)
+            self._env = manipulation.load(task_name)
         else:
             self._env = suite.load(
                 domain_name=domain_name,
@@ -135,10 +135,6 @@ class DMCWrapper(core.Env):
     @property
     def action_space(self):
         return self._norm_action_space
-
-    @property
-    def get_mod_tag(self):
-        return self._mod_tag
 
     def seed(self, seed):
         self._true_action_space.seed(seed)
